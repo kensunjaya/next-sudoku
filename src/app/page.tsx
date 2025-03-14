@@ -172,12 +172,12 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-4 font-sans">
+    <div className="flex flex-col items-center min-h-screen py-3 sm:py-4 font-sans">
       {mistakes >= 3 && <Modal title="Game Over" body="You have made 3 mistakes and lost this game" buttonLabel="New Game" setState={resetPuzzle}/>}
       <main className={`w-fit z-10 ${mistakes >= 3 && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
         <h1 className="text-center text-3xl font-bold">Next Sudoku</h1>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
-        <div className="flex flex-row justify-between w-full text-xl sm:text-2xl">
+        <div className="flex flex-row justify-between w-full text-xl sm:text-2xl px-3 sm:px-0">
           <div className="flex flex-col">
             <div>{`Mistakes`}</div>
             <div className="font-bold">{`${mistakes} / 3`}</div>
@@ -188,14 +188,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid mt-5 grid-cols-9 text-3xl xs:text-3xl sm:text-3xl md:text-4xl xl:text-5xl border-2 border-black font-light dark:border-white">
+        <div className="grid mt-4 sm:mt-5 grid-cols-9 text-3xl xs:text-3xl sm:text-3xl md:text-4xl xl:text-5xl border-2 border-black font-light dark:border-white">
           {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
             <div
               onClick={() => { setSelectedCell([rowIndex, colIndex]) }}
               onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
               tabIndex={0}
               key={rowIndex * 9 + colIndex}
-              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-600 dark:text-red-400'} ${getBorderClass(rowIndex, colIndex)} h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 ${highlightCell(rowIndex, colIndex)}`}
+              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-600 dark:text-red-400'} ${getBorderClass(rowIndex, colIndex)} h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 ${highlightCell(rowIndex, colIndex)}`}
             >
               {cell.val != 0 || cell.wrong ? cell.val : ''}
             </div>
@@ -207,7 +207,7 @@ export default function Home() {
               key={index}
               disabled={num == 0}
               onClick={() => checkAnswer(num, selectedCell[0], selectedCell[1])}
-              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
+              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
               {num}
             </button>
           )}
