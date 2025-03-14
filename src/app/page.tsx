@@ -12,6 +12,7 @@ export default function Home() {
   const [selectedCell, setSelectedCell] = useState<number[]>([0, 0]);
   const [mistakes, setMistakes] = useState<number>(0);
   const [time, setTime] = useState<number>(0);
+  const [unsolvedNumber, setUnsolvedNumber] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   const generateRandom3x3matrix = () => {
     const random3x3array = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
@@ -86,8 +87,7 @@ export default function Home() {
     return puzzle;
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, rowIndex: number, colIndex: number) => {
-    const num = parseInt(event.key);
+  const checkAnswer = (num: number, rowIndex: number, colIndex: number) => {
     if (num >= 1 && num <= 9) {
       if (puzzle[rowIndex][colIndex].val != 0 && !puzzle[rowIndex][colIndex].wrong) return;
       const newPuzzle = puzzle.map(row => row.slice());
@@ -101,7 +101,22 @@ export default function Home() {
       newPuzzle[rowIndex][colIndex].val = num;
       newPuzzle[rowIndex][colIndex].wrong = false;
       setPuzzle(newPuzzle);
+      let count = 0;
+      for (let i=0;i<9;i++) {
+        for (let j=0;j<9;j++) {
+          if (newPuzzle[i][j].val == num) count++;
+        }
+      }
+      if (count == 9) {
+        const newUnsolvedNumber = unsolvedNumber.filter(n => n != num);
+        setUnsolvedNumber(newUnsolvedNumber);
+      }
     }
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, rowIndex: number, colIndex: number) => {
+    const num = parseInt(event.key);
+    checkAnswer(num, rowIndex, colIndex);
   }
 
   const formatTime = (time: number) => {
@@ -138,7 +153,7 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="grid mt-5 grid-cols-9 text-xl xs:text-2xl sm:text-2xl md:text-2xl xl:text-4xl border-2 border-black dark:border-white">
+        <div className="grid mt-5 grid-cols-9 text-2xl xs:text-2xl sm:text-3xl md:text-3xl xl:text-4xl border-2 border-black dark:border-white">
           {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
             <div 
               onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
@@ -150,6 +165,17 @@ export default function Home() {
               {cell.val != 0 || cell.wrong ? cell.val : ''}
             </div>
           ))}
+        </div>
+        <div className="grid mt-5 grid-cols-9">
+          {unsolvedNumber.map((num, index) =>
+            <button 
+              key={index}
+              disabled={num == 0}
+              onClick={() => checkAnswer(num, selectedCell[0], selectedCell[1])}
+              className="flex justify-center text-blue-300 items-center text-3xl sm:text-4xl h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-12 sm:w-12 md:h-14 md:w-14 xl:h-16 xl:w-16 hover:bg-gray-200 dark:hover:bg-gray-900">
+              {num != 0 ? num : ''}
+            </button>
+          )}
         </div>
       </main>
     </div>
