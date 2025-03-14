@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sudoku Web",
-  description: "Online sudoku game",
+  title: "Next Sudoku",
+  description: "Web based sudoku game",
 };
 
 export default function RootLayout({
