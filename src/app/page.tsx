@@ -9,7 +9,7 @@ type Puzzle = {
 export default function Home() {
   const [cells, setCells] = useState<number[][]>([0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]));
   const [puzzle, setPuzzle] = useState<Puzzle[][]>(Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false }))));
-  const [selectedCell, setSelectedCell] = useState<number[]>([0, 0]);
+  const [selectedCell, setSelectedCell] = useState<number[]>([-1, -1]);
   const [mistakes, setMistakes] = useState<number>(0);
   const [time, setTime] = useState<number>(0);
   const [unsolvedNumber, setUnsolvedNumber] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -48,13 +48,14 @@ export default function Home() {
 
   const highlightCell = (row: number, col: number) => {
     if (selectedCell[0] == -1) return '';
-    if (selectedCell[0] == row && selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-700';
-    if (selectedCell[0] == row || selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-900';
+    if (selectedCell[0] == row && selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-600';
+    if (selectedCell[0] == row || selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-800';
     const startRow = row - row%3;
     const startCol = col - col%3;
+    if (puzzle[row][col].val != 0 && puzzle[selectedCell[0]][selectedCell[1]].val == puzzle[row][col].val) return 'bg-gray-200 dark:bg-gray-600';
     for (let i=0;i<3;i++) {
       for (let j=0;j<3;j++) {
-        if (selectedCell[0] == i+startRow && selectedCell[1] == j+startCol) return 'bg-gray-200 dark:bg-gray-900';
+        if (selectedCell[0] == i+startRow && selectedCell[1] == j+startCol) return 'bg-gray-200 dark:bg-gray-800';
       }
     }
   }
@@ -139,8 +140,19 @@ export default function Home() {
     }
   }, []);
 
+  const getBorderClass = (rowIndex: number, colIndex: number) => {
+    let borderClass = 'border border-gray-500';
+    if (rowIndex % 3 === 0) borderClass += ' border-t-2 border-t-white';
+    if ((rowIndex+1) % 3 === 0) borderClass += ' border-b-2 border-b-white';
+    if ((colIndex+1) % 3 === 0) borderClass += ' border-r-2 border-r-white';
+    if (colIndex % 3 === 0) borderClass += ' border-l-2 border-l-white';
+    if (rowIndex === 8) borderClass += ' border-b-2 border-b-white';
+    if (colIndex === 8) borderClass += ' border-r-2 border-r-white';
+    return borderClass;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+    <div className="flex flex-col items-center min-h-screen py-2">
       <main className="w-fit">
         <div className="flex flex-row justify-between w-full text-xl sm:text-2xl">
           <div className="flex flex-col">
@@ -153,14 +165,14 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="grid mt-5 grid-cols-9 text-2xl xs:text-2xl sm:text-3xl md:text-3xl xl:text-4xl border-2 border-black dark:border-white">
+        <div className="grid mt-5 grid-cols-9 text-3xl xs:text-3xl sm:text-3xl md:text-4xl xl:text-5xl border-2 border-black dark:border-white">
           {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
             <div 
               onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
               onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
               tabIndex={0}
               key={rowIndex * 9 + colIndex} 
-              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-12 sm:w-12 md:h-14 md:w-14 xl:h-16 xl:w-16 ${highlightCell(rowIndex, colIndex)}`}
+              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} ${getBorderClass(rowIndex, colIndex)} h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-12 sm:w-12 md:h-14 md:w-14 xl:h-16 xl:w-16 ${highlightCell(rowIndex, colIndex)}`}
             >
               {cell.val != 0 || cell.wrong ? cell.val : ''}
             </div>
@@ -172,7 +184,7 @@ export default function Home() {
               key={index}
               disabled={num == 0}
               onClick={() => checkAnswer(num, selectedCell[0], selectedCell[1])}
-              className="flex justify-center text-blue-300 items-center text-3xl sm:text-4xl h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-12 sm:w-12 md:h-14 md:w-14 xl:h-16 xl:w-16 hover:bg-gray-200 dark:hover:bg-gray-900">
+              className="flex hover:cursor-pointer justify-center text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.4rem] w-[2.4rem] xs:h-14 xs:w-14 sm:h-12 sm:w-12 md:h-14 md:w-14 xl:h-16 xl:w-16 hover:bg-gray-200 dark:hover:bg-gray-900">
               {num != 0 ? num : ''}
             </button>
           )}
