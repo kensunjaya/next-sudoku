@@ -138,14 +138,14 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="grid mt-5 grid-cols-9 xs:text-md sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl border-2 border-black dark:border-white">
+        <div className="grid mt-5 grid-cols-9 xs:text-2xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl border-2 border-black dark:border-white">
           {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
             <div 
               onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
               onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
               tabIndex={0}
               key={rowIndex * 9 + colIndex} 
-              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white xs:h-8 xs:w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16 ${highlightCell(rowIndex, colIndex)}`}
+              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white xs:h-12 xs:w-12 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-14 lg:w-14 xl:h-16 xl:w-16 ${highlightCell(rowIndex, colIndex)}`}
             >
               {cell.val != 0 || cell.wrong ? cell.val : ''}
             </div>
