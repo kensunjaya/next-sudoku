@@ -57,7 +57,7 @@ export default function Home() {
       }
     }
   }
-  
+
   // Fill the rest of the cells using backtracking algorithm
   const recursiveFill = (cells: number[][], prev: number) => {
     if (prev == 81) return true; // all cells are filled
@@ -118,8 +118,7 @@ export default function Home() {
     setPuzzle(createPuzzle(cells));
     const timeInterval = setInterval(() => {
       setTime(prev => prev + 1);
-    }
-    , 1000);
+    }, 1000);
     return () => {
       clearInterval(timeInterval);
     }
@@ -128,29 +127,29 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <main className="w-fit">
-        <div className="flex flex-row justify-between">
+        <div className="flex flex-row justify-between w-full">
           <div className="flex flex-col">
             <div className="text-2xl">{`Mistakes`}</div>
             <div className="text-2xl font-bold">{`${mistakes} / 3`}</div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-right">
             <div className="text-2xl">{`Time`}</div>
-            <div className="text-2xl font-bold text-right">{`${formatTime(time)}`}</div>
+            <div className="text-2xl font-bold">{`${formatTime(time)}`}</div>
           </div>
         </div>
         
-        <div className="grid mt-5 grid-cols-9 text-4xl border-2 border-black dark:border-white">
-        {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
-          <div 
-            onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
-            onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
-            tabIndex={0}
-            key={rowIndex * 9 + colIndex} 
-            className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white h-16 w-16 ${highlightCell(rowIndex, colIndex)}`}
-          >
-            {cell.val != 0 || cell.wrong ? cell.val : ''}
-          </div>
-        ))}
+        <div className="grid mt-5 grid-cols-9 xs:text-md sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl border-2 border-black dark:border-white">
+          {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
+            <div 
+              onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
+              onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
+              tabIndex={0}
+              key={rowIndex * 9 + colIndex} 
+              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white xs:h-8 xs:w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16 ${highlightCell(rowIndex, colIndex)}`}
+            >
+              {cell.val != 0 || cell.wrong ? cell.val : ''}
+            </div>
+          ))}
         </div>
       </main>
     </div>
