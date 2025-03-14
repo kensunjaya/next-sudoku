@@ -1,103 +1,158 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState } from "react";
+
+type Puzzle = {
+  val: number;
+  wrong: boolean;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [cells, setCells] = useState<number[][]>([0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]));
+  const [puzzle, setPuzzle] = useState<Puzzle[][]>(Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false }))));
+  const [selectedCell, setSelectedCell] = useState<number[]>([0, 0]);
+  const [mistakes, setMistakes] = useState<number>(0);
+  const [time, setTime] = useState<number>(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const generateRandom3x3matrix = () => {
+    const random3x3array = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+    return random3x3array;
+  }
+
+  const fillDiagonalMatrix = (cells: number[][]) => {
+    for (let i=0;i<3;i++) {
+      const random3x3array = generateRandom3x3matrix();
+      for (let j=3*i;j<3*(i+1);j++) {
+        for (let k=3*i;k<3*(i+1);k++) {
+          cells[j][k] = random3x3array.shift() ?? 0;
+        }
+      }
+    }
+  }
+
+  // Check if a number can be placed in a cell
+  const checkIfSafe = (cells: number[][], row: number, col: number, num: number) => {
+    for (let i=0;i<9;i++) {
+      if (cells[row][i] == num) return false;
+      if (cells[i][col] == num) return false;
+    }
+    const startRow = row - row%3;
+    const startCol = col - col%3;
+    for (let i=0;i<3;i++) {
+      for (let j=0;j<3;j++) {
+        if (cells[i+startRow][j+startCol] == num) return false;
+      }
+    }
+    return true;
+  }
+
+  const highlightCell = (row: number, col: number) => {
+    if (selectedCell[0] == -1) return '';
+    if (selectedCell[0] == row && selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-700';
+    if (selectedCell[0] == row || selectedCell[1] == col) return 'bg-gray-200 dark:bg-gray-900';
+    const startRow = row - row%3;
+    const startCol = col - col%3;
+    for (let i=0;i<3;i++) {
+      for (let j=0;j<3;j++) {
+        if (selectedCell[0] == i+startRow && selectedCell[1] == j+startCol) return 'bg-gray-200 dark:bg-gray-900';
+      }
+    }
+  }
+  
+  // Fill the rest of the cells using backtracking algorithm
+  const recursiveFill = (cells: number[][], prev: number) => {
+    if (prev == 81) return true; // all cells are filled
+    const row = Math.floor(prev/9);
+    const col = prev%9;
+    if (cells[row][col] != 0) return recursiveFill(cells, prev+1);
+    for (let num=1;num<=9;num++) {
+      if (checkIfSafe(cells, row, col, num)) {
+        cells[row][col] = num;
+        if (recursiveFill(cells, prev+1)) return true;
+        cells[row][col] = 0;
+      }
+    }
+    return false;
+  }
+
+  const createPuzzle = (solution: number[][]) => {
+    const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false })));
+    for (let i = 0; i < 81; i++) {
+      if (Math.random() < 0.5) {
+        const row = Math.floor(i / 9);
+        const col = i % 9;
+        puzzle[row][col].val = 0;
+      }
+    }
+    return puzzle;
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, rowIndex: number, colIndex: number) => {
+    const num = parseInt(event.key);
+    if (num >= 1 && num <= 9) {
+      if (puzzle[rowIndex][colIndex].val != 0 && !puzzle[rowIndex][colIndex].wrong) return;
+      const newPuzzle = puzzle.map(row => row.slice());
+      if (cells[rowIndex][colIndex] != num) {
+        setMistakes(mistakes + 1);
+        newPuzzle[rowIndex][colIndex].wrong = true;
+        newPuzzle[rowIndex][colIndex].val = num;
+        setPuzzle(newPuzzle);
+        return;
+      }
+      newPuzzle[rowIndex][colIndex].val = num;
+      newPuzzle[rowIndex][colIndex].wrong = false;
+      setPuzzle(newPuzzle);
+    }
+  }
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+
+  useEffect(() => {
+    fillDiagonalMatrix(cells);
+    setCells([...cells]);
+    recursiveFill(cells, 0);
+    setCells([...cells]);
+    setPuzzle(createPuzzle(cells));
+    const timeInterval = setInterval(() => {
+      setTime(prev => prev + 1);
+    }
+    , 1000);
+    return () => {
+      clearInterval(timeInterval);
+    }
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      <main className="w-fit">
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col">
+            <div className="text-2xl">{`Mistakes`}</div>
+            <div className="text-2xl font-bold">{`${mistakes} / 3`}</div>
+          </div>
+          <div className="flex flex-col">
+            <div className="text-2xl">{`Time`}</div>
+            <div className="text-2xl font-bold text-right">{`${formatTime(time)}`}</div>
+          </div>
+        </div>
+        
+        <div className="grid mt-5 grid-cols-9 text-4xl border-2 border-black dark:border-white">
+        {puzzle.map((row, rowIndex) => row.map((cell, colIndex) =>
+          <div 
+            onClick={() => {setSelectedCell([rowIndex, colIndex])}} 
+            onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
+            tabIndex={0}
+            key={rowIndex * 9 + colIndex} 
+            className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-400'} border-1 border-black dark:border-white h-16 w-16 ${highlightCell(rowIndex, colIndex)}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {cell.val != 0 || cell.wrong ? cell.val : ''}
+          </div>
+        ))}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
