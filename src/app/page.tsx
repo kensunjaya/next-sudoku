@@ -11,6 +11,7 @@ export default function Home() {
   const [selectedCell, setSelectedCell] = useState<number[]>([-1, -1]);
   const [mistakes, setMistakes] = useState<number>(0);
   const [time, setTime] = useState<number>(0);
+  const [finalTime, setFinalTime] = useState<number>(0);
   const [win, setWin] = useState<boolean>(false);
   const [unsolvedNumber, setUnsolvedNumber] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [difficulty, setDifficulty] = useState<Difficulty>(null);
@@ -95,7 +96,7 @@ export default function Home() {
 
   const createPuzzle = (solution: number[][]) => {
     const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
-    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
+    const cellsToRemove = difficulty == 'easy' ? 2 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
     let removed = 0;
     while (removed < cellsToRemove) {
       const row = Math.floor(Math.random() * 9);
@@ -191,6 +192,12 @@ export default function Home() {
     }
   }, [difficulty]);
 
+  useEffect(() => {
+    if (win) {
+      setFinalTime(time);
+    }
+  }, [win]);
+
   const getBorderClass = (rowIndex: number, colIndex: number) => {
     let borderClass = 'border border-gray-500';
     if (rowIndex % 3 === 0) borderClass += ' border-t-2 border-t-black dark:border-t-white';
@@ -214,7 +221,7 @@ export default function Home() {
       {win &&
       <Modal
         title="Congratulations"
-        body={`You have successfully completed the puzzle in ${formatTime(time)}`}
+        body={`You have successfully completed the puzzle in ${formatTime(finalTime)}`}
         buttonLabel="New Game"
         setState={resetPuzzle}/>
       }
@@ -233,7 +240,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col text-right min-w-30">
             <div>{`Time`}</div>
-            <div className="font-bold">{`${formatTime(time)}`}</div>
+            <div className="font-bold">{`${formatTime(win ? finalTime : time)}`}</div>
           </div>
         </div>
 
