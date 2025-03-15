@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
@@ -6,10 +7,11 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [cells, setCells] = useState<number[][]>([0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]));
-  const [puzzle, setPuzzle] = useState<Puzzle[][]>(Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false }))));
+  const [puzzle, setPuzzle] = useState<Puzzle[][]>(Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false, predefined: true }))));
   const [selectedCell, setSelectedCell] = useState<number[]>([-1, -1]);
   const [mistakes, setMistakes] = useState<number>(0);
   const [time, setTime] = useState<number>(0);
+  const [win, setWin] = useState<boolean>(false);
   const [unsolvedNumber, setUnsolvedNumber] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [difficulty, setDifficulty] = useState<Difficulty>(null);
 
@@ -27,6 +29,22 @@ export default function Home() {
         }
       }
     }
+  }
+
+  const removeRemainingNumbers = (puzzle: Puzzle[][]) => {
+    const counter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const unsolvedNumber = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    for (let i=0;i<9;i++) {
+      for (let j=0;j<9;j++) {
+        counter[puzzle[i][j].val]++;
+      }
+    }
+    for (let i=1;i<=9;i++) {
+      if (counter[i] >= 9) {
+        unsolvedNumber[i-1] = 0
+      }
+    }
+    setUnsolvedNumber(unsolvedNumber)
   }
 
   // Check if a number can be placed in a cell
@@ -76,7 +94,7 @@ export default function Home() {
   }
 
   const createPuzzle = (solution: number[][]) => {
-    const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false })));
+    const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
     const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
     let removed = 0;
     while (removed < cellsToRemove) {
@@ -84,6 +102,7 @@ export default function Home() {
       const col = Math.floor(Math.random() * 9);
       if (puzzle[row][col].val != 0) {
         puzzle[row][col].val = 0;
+        puzzle[row][col].predefined = false;
         removed++;
       }
     }
@@ -111,6 +130,7 @@ export default function Home() {
           if (newPuzzle[i][j].val == num) count++;
         }
       }
+      console.log(count);
       if (count == 9) {
         const newUnsolvedNumber = unsolvedNumber.map(n => n == num ? 0 : n);
         setUnsolvedNumber(newUnsolvedNumber);
@@ -133,20 +153,31 @@ export default function Home() {
     const newCells = [0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]);
     setCells(newCells);
     setMistakes(0);
+    setWin(false);
+    setSelectedCell([-1, -1]);
     setUnsolvedNumber([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    const newPuzzle = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false })));
+    const newPuzzle = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => ({ val: 0, wrong: false, predefined: true })));
     setPuzzle(newPuzzle);
     fillDiagonalMatrix(newCells);
     recursiveFill(newCells, 0);
     setCells([...newCells]);
-    setPuzzle(createPuzzle(newCells));
+    const newPuzzleCreated = createPuzzle(newCells);
+    setPuzzle(newPuzzleCreated);
     setTime(0);
+    removeRemainingNumbers(newPuzzleCreated);
   }
 
   useEffect(() => {
     if (!localStorage.getItem('difficulty')) localStorage.setItem('difficulty', 'easy');
     setDifficulty(localStorage.getItem('difficulty') as Difficulty);
   }, []);
+
+  useEffect(() => {
+    for (const elm of unsolvedNumber) {
+      if (elm != 0) return;
+    }
+    setWin(true);
+  }, [unsolvedNumber]);
 
   useEffect(() => {
     if (!difficulty) return;
@@ -173,16 +204,34 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center min-h-screen py-3 sm:py-4 font-sans">
-      {mistakes >= 3 && <Modal title="Game Over" body="You have made 3 mistakes and lost this game" buttonLabel="New Game" setState={resetPuzzle}/>}
-      <main className={`w-fit z-10 ${mistakes >= 3 && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
+      {mistakes >= 3 && 
+      <Modal 
+        title="Game Over" 
+        body="You have made 3 mistakes and lost this game" 
+        buttonLabel="New Game" 
+        setState={resetPuzzle}/>
+      }
+      {win &&
+      <Modal
+        title="Congratulations"
+        body={`You have successfully completed the puzzle in ${formatTime(time)}`}
+        buttonLabel="New Game"
+        setState={resetPuzzle}/>
+      }
+      <main className={`w-fit z-10 ${(mistakes >= 3 || win) && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
         <h1 className="text-center text-3xl font-bold">Next Sudoku</h1>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
         <div className="flex flex-row justify-between w-full text-xl sm:text-2xl px-3 sm:px-0">
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-30">
             <div>{`Mistakes`}</div>
             <div className="font-bold">{`${mistakes} / 3`}</div>
           </div>
-          <div className="flex flex-col text-right">
+          <div className="flex items-center text-center justify-center h-full w-full">
+            <a href="https://github.com/kensunjaya" target="_blank" className="text-sm h-full mt-3">
+              Visit Creator
+            </a>
+          </div>
+          <div className="flex flex-col text-right min-w-30">
             <div>{`Time`}</div>
             <div className="font-bold">{`${formatTime(time)}`}</div>
           </div>
@@ -195,7 +244,7 @@ export default function Home() {
               onKeyDown={(event) => handleKeyDown(event, rowIndex, colIndex)}
               tabIndex={0}
               key={rowIndex * 9 + colIndex}
-              className={`flex justify-center hover:cursor-default items-center ${cell.wrong && 'text-red-600 dark:text-red-400'} ${getBorderClass(rowIndex, colIndex)} h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 ${highlightCell(rowIndex, colIndex)}`}
+              className={`flex justify-center ${!cell.predefined && 'text-blue-900 dark:text-blue-200'} hover:cursor-default items-center ${cell.wrong && 'text-red-600 dark:text-red-400'} ${getBorderClass(rowIndex, colIndex)} h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 ${highlightCell(rowIndex, colIndex)}`}
             >
               {cell.val != 0 || cell.wrong ? cell.val : ''}
             </div>
@@ -207,7 +256,7 @@ export default function Home() {
               key={index}
               disabled={num == 0}
               onClick={() => checkAnswer(num, selectedCell[0], selectedCell[1])}
-              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
+              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 duration-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
               {num}
             </button>
           )}
