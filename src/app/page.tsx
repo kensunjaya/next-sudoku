@@ -96,7 +96,7 @@ export default function Home() {
 
   const createPuzzle = (solution: number[][]) => {
     const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
-    const cellsToRemove = difficulty == 'easy' ? 2 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
+    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
     let removed = 0;
     while (removed < cellsToRemove) {
       const row = Math.floor(Math.random() * 9);
@@ -263,7 +263,7 @@ export default function Home() {
               key={index}
               disabled={num == 0}
               onClick={() => checkAnswer(num, selectedCell[0], selectedCell[1])}
-              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 duration-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.6rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
+              className={`flex transition rounded-md ${num == 0 ? 'opacity-0 duration-0 hover:cursor-default' : 'hover:cursor-pointer'} justify-center text-cyan-700 dark:text-blue-300 items-center text-3xl md:text-4xl xl:text-5xl h-[2.rem] w-[2.6rem] xs:h-14 xs:w-14 sm:h-14 sm:w-14 md:h-16 md:w-16 xl:h-18 xl:w-18 hover:bg-gray-200 dark:hover:bg-gray-900`}>
               {num}
             </button>
           )}
