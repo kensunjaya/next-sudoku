@@ -96,7 +96,7 @@ export default function Home() {
 
   const createPuzzle = (solution: number[][]) => {
     const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
-    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 54 : 62;
+    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 52 : 58;
     let removed = 0;
     while (removed < cellsToRemove) {
       const row = Math.floor(Math.random() * 9);
@@ -128,7 +128,7 @@ export default function Home() {
       let count = 0;
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
-          if (newPuzzle[i][j].val == num) count++;
+          if (newPuzzle[i][j].val == num && !newPuzzle[i][j].wrong) count++;
         }
       }
       console.log(count);
