@@ -3,7 +3,13 @@
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import { Difficulty, Puzzle } from "@/interfaces/Types";
+import { findOne, insertOne, updateOne } from "@/utilities/Mongo";
 import { useEffect, useState } from "react";
+import { MdOutlineLeaderboard } from "react-icons/md";
+import { FaGithub } from "react-icons/fa6";
+import Leaderboard from "@/components/Leaderboard";
+import { formatTime } from "@/utilities/UtilFunctions";
+import { CgErase } from "react-icons/cg";
 
 export default function Home() {
   const [cells, setCells] = useState<number[][]>([0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]));
@@ -15,6 +21,48 @@ export default function Home() {
   const [win, setWin] = useState<boolean>(false);
   const [unsolvedNumber, setUnsolvedNumber] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [difficulty, setDifficulty] = useState<Difficulty>(null);
+  const [name, setName] = useState<string>("");
+  const [id, setId] = useState<string>("");
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
+
+  const closeLeaderboard = () => {
+    setShowLeaderboard(false);
+  }
+
+  const saveUserScore = async () => {
+    if (id) {
+      await findOne("scores", id).then((result) => {
+        if (result) {
+          if (result.time > finalTime) {
+            updateOne("scores", id, { time: finalTime, lastUpdated: new Date() });
+          }
+        }
+      });
+    }
+    else {
+      if (name.length >= 3) {
+        const data = {
+          name: name,
+          time: finalTime,
+          lastUpdated: new Date(),
+          difficulty: difficulty
+        };
+        const _id = await insertOne("scores", data);
+        if (_id) {
+          setId(_id.toString());
+          localStorage.setItem('_id', _id.toString());
+        }
+      }
+    }
+    resetPuzzle();
+  }
+
+  const eraseMistake = () => {
+    if (selectedCell[0] < 0 || selectedCell[0] < 0) return;
+    puzzle[selectedCell[0]][selectedCell[1]].wrong = false;
+    puzzle[selectedCell[0]][selectedCell[1]].val = 0;
+    setPuzzle([...puzzle]);
+  }
 
   const generateRandom3x3matrix = () => {
     const random3x3array = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
@@ -131,7 +179,6 @@ export default function Home() {
           if (newPuzzle[i][j].val == num && !newPuzzle[i][j].wrong) count++;
         }
       }
-      console.log(count);
       if (count == 9) {
         const newUnsolvedNumber = unsolvedNumber.map(n => n == num ? 0 : n);
         setUnsolvedNumber(newUnsolvedNumber);
@@ -142,12 +189,6 @@ export default function Home() {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, rowIndex: number, colIndex: number) => {
     const num = parseInt(event.key);
     checkAnswer(num, rowIndex, colIndex);
-  }
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }
 
   const resetPuzzle = () => {
@@ -171,6 +212,11 @@ export default function Home() {
   useEffect(() => {
     if (!localStorage.getItem('difficulty')) localStorage.setItem('difficulty', 'easy');
     setDifficulty(localStorage.getItem('difficulty') as Difficulty);
+    const userId = localStorage.getItem('_id');
+    if (userId) {
+      console.log("id exists, setting id")
+      setId(userId);
+    }
   }, []);
 
   useEffect(() => {
@@ -223,21 +269,25 @@ export default function Home() {
         title="Congratulations"
         body={`You have successfully completed the puzzle in ${formatTime(finalTime)}`}
         buttonLabel="New Game"
-        setState={resetPuzzle}/>
+        setState={saveUserScore}
+        setInput={(val) => setName(val)}
+        input={id ? undefined : name}
+      />
       }
-      <main className={`w-fit z-10 ${(mistakes >= 3 || win) && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
-        <h1 className="text-center text-3xl font-bold">Next Sudoku</h1>
+      {showLeaderboard && <Leaderboard setState={closeLeaderboard} defaultDifficulty={difficulty} />}
+      <main className={`w-fit z-10 ${(mistakes >= 3 || win || showLeaderboard) && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
+        <div className="flex flex-row text-3xl xs:text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl text-center justify-between items-center">
+          <MdOutlineLeaderboard className="hover:cursor-pointer" onClick={() => setShowLeaderboard(!showLeaderboard)} />
+          <h1 className="text-center font-bold">Next Sudoku</h1>
+          <FaGithub className="hover:cursor-pointer" onClick={() => window.open("https://github.com/kensunjaya", "_blank")} />
+        </div>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
-        <div className="flex flex-row justify-between w-full text-xl sm:text-2xl px-3 sm:px-0">
+        <div className="flex flex-row justify-between items-center w-full text-xl sm:text-2xl px-3 sm:px-0">
           <div className="flex flex-col min-w-30">
             <div>{`Mistakes`}</div>
             <div className="font-bold">{`${mistakes} / 3`}</div>
           </div>
-          <div className="flex items-center text-center justify-center h-full w-full">
-            <a href="https://github.com/kensunjaya" target="_blank" className="text-sm h-full mt-3">
-              Visit Creator
-            </a>
-          </div>
+          <CgErase className="text-5xl hover:cursor-pointer" onClick={() => eraseMistake()} />
           <div className="flex flex-col text-right min-w-30">
             <div>{`Time`}</div>
             <div className="font-bold">{`${formatTime(win ? finalTime : time)}`}</div>
