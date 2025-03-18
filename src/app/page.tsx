@@ -9,7 +9,7 @@ import { MdOutlineLeaderboard } from "react-icons/md";
 import { FaGithub } from "react-icons/fa6";
 import Leaderboard from "@/components/Leaderboard";
 import { formatTime } from "@/utilities/UtilFunctions";
-import { CgErase } from "react-icons/cg";
+import { PiEraser } from "react-icons/pi";
 
 export default function Home() {
   const [cells, setCells] = useState<number[][]>([0, 0, 0, 0, 0, 0, 0, 0, 0].map(() => [0, 0, 0, 0, 0, 0, 0, 0, 0]));
@@ -287,7 +287,7 @@ export default function Home() {
             <div>{`Mistakes`}</div>
             <div className="font-bold">{`${mistakes} / 3`}</div>
           </div>
-          <CgErase className="text-5xl hover:cursor-pointer" onClick={() => eraseMistake()} />
+          <PiEraser className="text-5xl hover:cursor-pointer" onClick={() => eraseMistake()} />
           <div className="flex flex-col text-right min-w-30">
             <div>{`Time`}</div>
             <div className="font-bold">{`${formatTime(win ? finalTime : time)}`}</div>

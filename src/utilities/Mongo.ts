@@ -3,7 +3,7 @@
 import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
 
 const db = {
-  uri: "mongodb+srv://kennethsunjaya:abcd1234@game.qgetj.mongodb.net/?appName=game",
+  uri: process.env.MONGO_URI || "mongodb://localhost:27017",
   dbName: "sudoku"
 }
 

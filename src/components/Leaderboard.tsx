@@ -21,6 +21,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({setState, defaultDifficulty}) 
   useEffect(() => {
     const fetchScores = async () => {
       const data = await findAll("scores");
+      if (!data) return;
       data.sort((a: Scoreboard, b: Scoreboard) => a.time - b.time);
       data.forEach((score: Scoreboard, index: number) => score.rank = index + 1);
       setScores(data);
