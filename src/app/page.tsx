@@ -2,8 +2,8 @@
 'use client';
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
-import { Difficulty, Puzzle } from "@/interfaces/Types";
-import { findById, findOne, insertOne, updateOne } from "@/utilities/Mongo";
+import { Difficulty, Puzzle, Scoreboard } from "@/interfaces/Types";
+import { findById, findMultiple, findOne, insertOne, updateOne } from "@/utilities/Mongo";
 import { useEffect, useState } from "react";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { FaGithub } from "react-icons/fa6";
@@ -33,10 +33,49 @@ export default function Home() {
   const saveUserScore = async () => {
     setIsLoading(true);
     if (id) {
-      await findById("scores", id).then((result) => {
+      await findById("scores", id).then(async (result) => {
         if (result) {
-          if (result.time > finalTime) {
+          if (result.time > finalTime && result.difficulty == difficulty) {
             updateOne("scores", id, { time: finalTime, lastUpdated: new Date() });
+          }
+          else if (result.difficulty != difficulty) {
+            const multiRecords: Scoreboard[] = await findMultiple("scores", { name: name });
+            if (multiRecords.length > 0) {
+              for (const record of multiRecords) {
+                if (record.difficulty == difficulty) {
+                  if (record.time > finalTime) {
+                    updateOne("scores", record._id, { time: finalTime, lastUpdated: new Date() });
+                  }
+                  break;
+                }
+                else {
+                  const data = {
+                    name: result.name.toString(),
+                    time: finalTime,
+                    lastUpdated: new Date(),
+                    difficulty: difficulty
+                  };
+                  const _id = await insertOne("scores", data);
+                  if (_id) {
+                    setId(_id.toString());
+                    localStorage.setItem('_id', _id.toString());
+                  }
+                }
+              }
+            }
+            else {
+              const data = {
+                name: result.name.toString(),
+                time: finalTime,
+                lastUpdated: new Date(),
+                difficulty: difficulty
+              };
+              const _id = await insertOne("scores", data);
+              if (_id) {
+                setId(_id.toString());
+                localStorage.setItem('_id', _id.toString());
+              }
+            }
           }
         }
       });
@@ -44,7 +83,7 @@ export default function Home() {
     else {
       if (name.length >= 3) {
         const availableData = await findOne("scores", { name: name });
-        if (availableData) {
+        if (availableData && availableData.difficulty == difficulty) {
           if (availableData.time > finalTime) {
             updateOne("scores", availableData._id, { time: finalTime, lastUpdated: new Date() });
             setId(availableData._id);
@@ -158,7 +197,7 @@ export default function Home() {
 
   const createPuzzle = (solution: number[][]) => {
     const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
-    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 52 : 58;
+    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 2 : difficulty == 'hard' ? 52 : 58;
     let removed = 0;
     while (removed < cellsToRemove) {
       const row = Math.floor(Math.random() * 9);

@@ -36,7 +36,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({setState, defaultDifficulty}) 
       const filtered = scores.filter((score: Scoreboard) => score.name.toLowerCase().includes(search.toLowerCase()));
       setFilteredScores(filtered);
     }
-  }, [search]);
+  }, [search, difficulty]);
 
   return (
     <div className="fixed inset-0 bg-transparent w-full h-full backdrop-opacity-80 overflow-y-auto text-gray-900 dark:text-white flex flex-col items-center justify-center z-100">

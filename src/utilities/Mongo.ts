@@ -58,6 +58,23 @@ export async function findOne(collectionName: string, query: any) {
   }
 }
 
+export async function findMultiple(collectionName: string, query: any) {
+  const client = new MongoClient(db.uri, { serverApi: ServerApiVersion.v1 });
+  try {
+    await client.connect();
+    const database = client.db(db.dbName);
+    const collection = database.collection(collectionName);
+    const findUsers = await collection.find(query).toArray();
+    return JSON.parse(JSON.stringify(findUsers));
+  }
+  catch (error) {
+    console.error(error);
+  }
+  finally {
+    await client.close();
+  }
+}
+
 export async function findAll(collectionName: string) {
   const client = new MongoClient(db.uri, { serverApi: ServerApiVersion.v1 });
   try {
