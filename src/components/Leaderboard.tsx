@@ -43,7 +43,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({setState, defaultDifficulty}) 
       <div className="bg-white dark:bg-black px-5 pb-10 pt-5 rounded-md">
         <div className="flex justify-between items-start w-full text-2xl">
           <input onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search" className=" outline-1 outline-gray-400 rounded-md text-sm px-2 w-40 focus:outline-blue-500 py-1" />
-          <IoIosCloseCircleOutline onClick={() => setState()} className="hover:cursor-pointer text-red-300 text-3xl hover:shadow-xl"/>
+          <IoIosCloseCircleOutline onClick={() => setState()} className="hover:cursor-pointer text-red-500 dark:text-red-300 text-3xl"/>
         </div>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
         {loading ? (
