@@ -4,12 +4,13 @@ interface ModalProps {
   title: string;
   body: string;
   buttonLabel: string;
+  isLoading: boolean;
   input?: string;
   setState: () => void;
   setInput?: (val: string) => void;
 }
 
-const Modal: React.FC<ModalProps> = ({title, body, buttonLabel, input, setState, setInput}) => {
+const Modal: React.FC<ModalProps> = ({title, body, buttonLabel, isLoading, input, setState, setInput}) => {
   const [errorMsg, setErrorMsg] = useState<string>("");
 
   const handleClick = () => {
@@ -47,9 +48,10 @@ const Modal: React.FC<ModalProps> = ({title, body, buttonLabel, input, setState,
             {errorMsg && <p className="text-red-500 text-sm mb-4">{errorMsg}</p>}
             <button
               onClick={() => handleClick()}
-              className="px-4 hover:cursor-pointer py-2 w-fit bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              disabled={isLoading}
+              className="px-4 hover:cursor-pointer py-2 w-fit disabled:hover:cursor-default bg-blue-500 disabled:bg-gray-400 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
-              {buttonLabel}
+              {isLoading ? "Loading .." : buttonLabel}
             </button>
           </div>
         </div>

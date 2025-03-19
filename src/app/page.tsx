@@ -3,7 +3,7 @@
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import { Difficulty, Puzzle } from "@/interfaces/Types";
-import { findOne, insertOne, updateOne } from "@/utilities/Mongo";
+import { findById, findOne, insertOne, updateOne } from "@/utilities/Mongo";
 import { useEffect, useState } from "react";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { FaGithub } from "react-icons/fa6";
@@ -24,14 +24,16 @@ export default function Home() {
   const [name, setName] = useState<string>("");
   const [id, setId] = useState<string>("");
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const closeLeaderboard = () => {
     setShowLeaderboard(false);
   }
 
   const saveUserScore = async () => {
+    setIsLoading(true);
     if (id) {
-      await findOne("scores", id).then((result) => {
+      await findById("scores", id).then((result) => {
         if (result) {
           if (result.time > finalTime) {
             updateOne("scores", id, { time: finalTime, lastUpdated: new Date() });
@@ -41,19 +43,30 @@ export default function Home() {
     }
     else {
       if (name.length >= 3) {
-        const data = {
-          name: name,
-          time: finalTime,
-          lastUpdated: new Date(),
-          difficulty: difficulty
-        };
-        const _id = await insertOne("scores", data);
-        if (_id) {
-          setId(_id.toString());
-          localStorage.setItem('_id', _id.toString());
+        const availableData = await findOne("scores", { name: name });
+        if (availableData) {
+          if (availableData.time > finalTime) {
+            updateOne("scores", availableData._id, { time: finalTime, lastUpdated: new Date() });
+            setId(availableData._id);
+            localStorage.setItem('_id', availableData._id.toString());
+          }
+        }
+        else {
+          const data = {
+            name: name,
+            time: finalTime,
+            lastUpdated: new Date(),
+            difficulty: difficulty
+          };
+          const _id = await insertOne("scores", data);
+          if (_id) {
+            setId(_id.toString());
+            localStorage.setItem('_id', _id.toString());
+          }
         }
       }
     }
+    setIsLoading(false);
     resetPuzzle();
   }
 
@@ -263,6 +276,7 @@ export default function Home() {
         title="Game Over" 
         body="You have made 3 mistakes and lost this game" 
         buttonLabel="New Game" 
+        isLoading={isLoading}
         setState={resetPuzzle}/>
       }
       {win &&
@@ -270,6 +284,7 @@ export default function Home() {
         title="Congratulations"
         body={`You have successfully completed the puzzle in ${formatTime(finalTime)}`}
         buttonLabel="New Game"
+        isLoading={isLoading}
         setState={saveUserScore}
         setInput={(val) => setName(val)}
         input={id ? undefined : name}

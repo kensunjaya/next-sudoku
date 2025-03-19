@@ -24,13 +24,30 @@ export async function insertOne(collectionName: string, data: any) {
   }
 }
 
-export async function findOne(collectionName: string, query: string) {
+export async function findById(collectionName: string, query: string) {
   const client = new MongoClient(db.uri, { serverApi: ServerApiVersion.v1 });
   try {
     await client.connect();
     const database = client.db(db.dbName);
     const collection = database.collection(collectionName);
     const findUser = await collection.findOne({ _id: new ObjectId(query) });
+    return JSON.parse(JSON.stringify(findUser));
+  } 
+  catch (error) {
+    console.error(error);
+  }
+  finally {
+    await client.close();
+  }
+}
+
+export async function findOne(collectionName: string, query: any) {
+  const client = new MongoClient(db.uri, { serverApi: ServerApiVersion.v1 });
+  try {
+    await client.connect();
+    const database = client.db(db.dbName);
+    const collection = database.collection(collectionName);
+    const findUser = await collection.findOne(query);
     return JSON.parse(JSON.stringify(findUser));
   } 
   catch (error) {
