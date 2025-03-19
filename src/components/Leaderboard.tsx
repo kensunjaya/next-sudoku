@@ -2,7 +2,7 @@ import { Difficulty, Scoreboard } from "@/interfaces/Types";
 import { findAll } from "@/utilities/Mongo";
 import { formatTime } from "@/utilities/UtilFunctions";
 import { useEffect, useState } from "react";
-import { FaRegWindowClose } from "react-icons/fa";
+import { IoIosCloseCircleOutline } from "react-icons/io";
 import Navbar from "./Navbar";
 import { PuffLoader } from "react-spinners";
 
@@ -41,9 +41,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({setState, defaultDifficulty}) 
   return (
     <div className="fixed inset-0 bg-transparent w-full h-full backdrop-opacity-80 overflow-y-auto text-gray-900 dark:text-white flex flex-col items-center justify-center z-100">
       <div className="bg-white dark:bg-black px-5 pb-10 pt-5 rounded-md">
-        <div className="flex justify-between w-full text-2xl">
-          <input onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search" className=" outline-1 outline-gray-400 rounded-md text-sm px-2 w-30 focus:outline-blue-500 py-1" />
-          <FaRegWindowClose onClick={() => setState()} className="hover:cursor-pointer hover:shadow-xl"/>
+        <div className="flex justify-between items-start w-full text-2xl">
+          <input onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search" className=" outline-1 outline-gray-400 rounded-md text-sm px-2 w-40 focus:outline-blue-500 py-1" />
+          <IoIosCloseCircleOutline onClick={() => setState()} className="hover:cursor-pointer text-red-300 text-3xl hover:shadow-xl"/>
         </div>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
         {loading ? (
