@@ -59,6 +59,7 @@ export default function Home() {
 
   const eraseMistake = () => {
     if (selectedCell[0] < 0 || selectedCell[0] < 0) return;
+    if (!puzzle[selectedCell[0]][selectedCell[1]].wrong) return;
     puzzle[selectedCell[0]][selectedCell[1]].wrong = false;
     puzzle[selectedCell[0]][selectedCell[1]].val = 0;
     setPuzzle([...puzzle]);
