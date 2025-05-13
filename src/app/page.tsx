@@ -333,19 +333,19 @@ export default function Home() {
       <main className={`w-fit z-10 ${(mistakes >= 3 || win || showLeaderboard) && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
         <div className="flex flex-row text-3xl xs:text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl text-center justify-between items-center">
           <MdOutlineLeaderboard className="hover:cursor-pointer" onClick={() => setShowLeaderboard(!showLeaderboard)} />
-          <h1 className="text-center font-bold">Next Sudoku</h1>
+          <h1 className="text-center hover:cursor-default font-bold">{"NeXT Sudoku"}</h1>
           <FaGithub className="hover:cursor-pointer" onClick={() => window.open("https://github.com/kensunjaya", "_blank")} />
         </div>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
         <div className="flex flex-row justify-between items-center w-full text-xl sm:text-2xl px-3 sm:px-0">
           <div className="flex flex-col min-w-30">
-            <div>{`Mistakes`}</div>
-            <div className="font-bold">{`${mistakes} / 3`}</div>
+            <div className="hover:cursor-default">{`Mistakes`}</div>
+            <div className="font-bold hover:cursor-default">{`${mistakes} / 3`}</div>
           </div>
           <PiEraser className="text-5xl hover:cursor-pointer" onClick={() => eraseMistake()} />
           <div className="flex flex-col text-right min-w-30">
-            <div>{`Time`}</div>
-            <div className="font-bold">{`${formatTime(win ? finalTime : time)}`}</div>
+            <div className="hover:cursor-default">{`Time`}</div>
+            <div className="font-bold hover:cursor-default">{`${formatTime(win ? finalTime : time)}`}</div>
           </div>
         </div>
 
