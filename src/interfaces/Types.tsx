@@ -7,10 +7,9 @@ export type Puzzle = {
 }
 
 export type Scoreboard = {
-  _id?: string;
   rank?: number;
   name: string;
   time: number;
   difficulty: Difficulty;
-  lastUpdated: Date;
+  lastUpdated: string;
 }

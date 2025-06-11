@@ -1,5 +1,5 @@
 import { Difficulty, Scoreboard } from "@/interfaces/Types";
-import { findAll } from "@/utilities/Mongo";
+import { findAll } from "@/utilities/DynamoUtils";
 import { formatTime } from "@/utilities/UtilFunctions";
 import { useEffect, useState } from "react";
 import { IoIosCloseCircleOutline } from "react-icons/io";
@@ -20,14 +20,15 @@ const Leaderboard: React.FC<LeaderboardProps> = ({setState, defaultDifficulty}) 
 
   useEffect(() => {
     const fetchScores = async () => {
-      const data = await findAll("scores");
+      const data = await findAll("SudokuScores");
       if (!data) return;
-      data.sort((a: Scoreboard, b: Scoreboard) => a.time - b.time);
-      data.forEach((score: Scoreboard, index: number) => score.rank = index + 1);
-      setScores(data);
-      const displayedScores = data.filter((score: Scoreboard) => score.difficulty === difficulty).slice(0, 10);
-      displayedScores.sort((a: Scoreboard, b: Scoreboard) => a.time - b.time);
-      displayedScores.forEach((score: Scoreboard, index: number) => score.rank = index + 1);
+      const typedData = data as Scoreboard[];
+      typedData.sort((a, b) => a.time - b.time);
+      typedData.forEach((score, index) => score.rank = index + 1);
+      setScores(typedData);
+      const displayedScores = typedData.filter((score) => score.difficulty === difficulty).slice(0, 10);
+      displayedScores.sort((a, b) => a.time - b.time);
+      displayedScores.forEach((score, index) => score.rank = index + 1);
       setDisplayedScores(displayedScores);
       setLoading(false);
     };

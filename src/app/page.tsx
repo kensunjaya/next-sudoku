@@ -3,7 +3,7 @@
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import { Difficulty, Puzzle, Scoreboard } from "@/interfaces/Types";
-import { findById, findMultiple, findOne, insertOne, updateOne } from "@/utilities/Mongo";
+import { findScoresByName, insertOne, updateOne } from "@/utilities/DynamoUtils";
 import { useEffect, useState } from "react";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { FaGithub } from "react-icons/fa6";
@@ -32,75 +32,67 @@ export default function Home() {
 
   const saveUserScore = async () => {
     setIsLoading(true);
+    // Jika userId ada di local storage
     if (id) {
-      await findById("scores", id).then(async (result) => {
-        if (result) {
-          if (result.time > finalTime && result.difficulty == difficulty) {
-            updateOne("scores", id, { time: finalTime, lastUpdated: new Date() });
+      await findScoresByName("SudokuScores", id).then(async (result) => {
+        let availableData: Scoreboard | null = null;
+        for (const data of result) {
+          if (data.difficulty == difficulty) {
+            availableData = data;
+            break;
           }
-          else if (result.difficulty != difficulty) {
-            const multiRecords: Scoreboard[] = await findMultiple("scores", { name: name });
-            if (multiRecords.length > 0) {
-              for (const record of multiRecords) {
-                if (record.difficulty == difficulty) {
-                  if (record.time > finalTime) {
-                    updateOne("scores", record._id, { time: finalTime, lastUpdated: new Date() });
-                  }
-                  break;
-                }
-                else {
-                  const data = {
-                    name: result.name.toString(),
-                    time: finalTime,
-                    lastUpdated: new Date(),
-                    difficulty: difficulty
-                  };
-                  const _id = await insertOne("scores", data);
-                  if (_id) {
-                    setId(_id.toString());
-                    localStorage.setItem('_id', _id.toString());
-                  }
-                }
-              }
-            }
-            else {
-              const data = {
-                name: result.name.toString(),
-                time: finalTime,
-                lastUpdated: new Date(),
-                difficulty: difficulty
-              };
-              const _id = await insertOne("scores", data);
-              if (_id) {
-                setId(_id.toString());
-                localStorage.setItem('_id', _id.toString());
-              }
-            }
+        }
+        if (availableData) {
+          if (availableData.time > finalTime) {
+            updateOne("SudokuScores", id, difficulty!, { time: finalTime, lastUpdated: new Date().toISOString() });
+          }
+        }
+        else {
+          const data: Scoreboard = {
+            name: id,
+            time: finalTime,
+            lastUpdated: new Date().toISOString(),
+            difficulty: difficulty
+          };
+          const userName = await insertOne("SudokuScores", data);
+          if (userName) {
+            setId(userName.toString());
+            localStorage.setItem('userId', userName.toString());
           }
         }
       });
     }
+    // Jika userId tidak ada di local storage
     else {
       if (name.length >= 3) {
-        const availableData = await findOne("scores", { name: name });
-        if (availableData && availableData.difficulty == difficulty) {
-          if (availableData.time > finalTime) {
-            updateOne("scores", availableData._id, { time: finalTime, lastUpdated: new Date() });
-            setId(availableData._id);
-            localStorage.setItem('_id', availableData._id.toString());
+        const prevScores: Scoreboard[] = await findScoresByName("SudokuScores", name);
+        let availableData: Scoreboard | null = null;
+        for (const data of prevScores) {
+          if (data.difficulty == difficulty) {
+            availableData = data;
+            break;
           }
         }
+        // if a previous data exists
+        if (availableData) {
+          if (availableData.time > finalTime) {
+            updateOne("SudokuScores", availableData.name, difficulty!, { time: finalTime, lastUpdated: new Date().toISOString() });
+            setId(availableData.name);
+            localStorage.setItem('userId', availableData.name.toString());
+          }
+        }
+        // create new record
         else {
-          const data = {
+          const data: Scoreboard = {
             name: name,
             time: finalTime,
-            lastUpdated: new Date(),
+            lastUpdated: new Date().toISOString(),
             difficulty: difficulty
           };
-          const _id = await insertOne("scores", data);
-          if (_id) {
-            setId(_id.toString());
-            localStorage.setItem('_id', _id.toString());
+          const userName = await insertOne("SudokuScores", data);
+          if (userName) {
+            setId(userName.toString());
+            localStorage.setItem('userId', userName.toString());
           }
         }
       }
@@ -197,7 +189,7 @@ export default function Home() {
 
   const createPuzzle = (solution: number[][]) => {
     const puzzle: Puzzle[][] = solution.map(row => row.map(val => ({ val, wrong: false, predefined: true })));
-    const cellsToRemove = difficulty == 'easy' ? 38 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 52 : 58;
+    const cellsToRemove = difficulty == 'easy' ? 2 : difficulty == 'medium' ? 46 : difficulty == 'hard' ? 52 : 58;
     let removed = 0;
     while (removed < cellsToRemove) {
       const row = Math.floor(Math.random() * 9);
@@ -265,7 +257,7 @@ export default function Home() {
   useEffect(() => {
     if (!localStorage.getItem('difficulty')) localStorage.setItem('difficulty', 'easy');
     setDifficulty(localStorage.getItem('difficulty') as Difficulty);
-    const userId = localStorage.getItem('_id');
+    const userId = localStorage.getItem('userId');
     if (userId) {
       console.log("id exists, setting id")
       setId(userId);
