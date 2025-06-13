@@ -325,8 +325,8 @@ export default function Home() {
       <main className={`w-fit z-10 ${(mistakes >= 3 || win || showLeaderboard) && 'blur-[0.1rem] opacity-30 transition duration-300 ease-in-out'}`}>
         <div className="flex flex-row text-3xl xs:text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-4xl text-center justify-between items-center">
           <MdOutlineLeaderboard className="hover:cursor-pointer" onClick={() => setShowLeaderboard(!showLeaderboard)} />
-          <h1 className="text-center hover:cursor-default font-bold">{"NeXT Sudoku"}</h1>
-          <FaGithub className="hover:cursor-pointer" onClick={() => window.open("https://github.com/kensunjaya", "_blank")} />
+          <h1 className="text-center hover:cursor-default font-bold">{"NExT Sudoku"}</h1>
+          <FaGithub className="hover:cursor-pointer" onClick={() => window.open("https://github.com/kensunjaya/next-sudoku", "_blank")} />
         </div>
         <Navbar difficulty={difficulty} setDifficulty={setDifficulty} />
         <div className="flex flex-row justify-between items-center w-full text-xl sm:text-2xl px-3 sm:px-0">
